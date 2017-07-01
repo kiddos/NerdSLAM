@@ -25,6 +25,7 @@ class TestKinectReaderV2 : public ::testing::Test {
     config_.set_ir(true);
     config_.set_depth(true);
     config_.set_registration(true);
+    config_.set_log_level(KinectConfigV2::WARNING);
     reader_ = new KinectReaderV2(config_);
   }
 
