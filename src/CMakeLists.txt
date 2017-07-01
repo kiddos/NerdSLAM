@@ -31,8 +31,9 @@ find_library(freenect2_LIBRARIES freenect2)
 if (freenect2_LIBRARIES)
   message(STATUS "found freenect2: ${freenect2_LIBRARIES}")
   find_package(OpenCL REQUIRED)
-  file(GLOB_RECURSE KINECT_SOURCE NerdSLAM/kinect/kinect_reader_v2.characters
-    NerdSLAM/kinect/kinect_reader_v2.h)
+  file(GLOB KINECT_SOURCE NerdSLAM/kinect/kinect_reader_v2.*
+    NerdSLAM/kinect/kinect_v2_console_logger.*
+    NerdSLAM/kinect/kinect_v2_file_logger.*)
   include_directories(${OpenCL_INCLUDE_DIRS})
   link_libraries(${freenect2_LIBRARIES} ${OpenCL_LIBRARIES})
 else ()
