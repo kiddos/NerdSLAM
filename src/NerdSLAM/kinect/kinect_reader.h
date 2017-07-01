@@ -10,7 +10,7 @@ namespace slam {
 class KinectReader {
  public:
   KinectReader() : running_(false) {};
-  ~KinectReader() {}
+  virtual ~KinectReader() {}
   virtual bool FindDevice() = 0;
   virtual void StartDevice() = 0;
   virtual void PauseDevice() = 0;
