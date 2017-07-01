@@ -1,6 +1,6 @@
 package nerd.slam;
 
-message Kinect2Config {
+message KinectConfigV2 {
   enum PacketPipelineType {
     OPENGL = 0;
     OPENCL = 1;

@@ -5,18 +5,18 @@
 namespace nerd {
 namespace slam {
 
-Kinect2Reader::Kinect2Reader()
+KinectReaderV2::KinectReaderV2()
     : device_(nullptr),
       pipeline_(nullptr),
       listener_(nullptr) {}
 
-Kinect2Reader::Kinect2Reader(const Kinect2Config& config)
+KinectReaderV2::KinectReaderV2(const KinectConfigV2& config)
     : config_(config),
       device_(nullptr),
       pipeline_(nullptr),
       listener_(nullptr) {}
 
-Kinect2Reader::~Kinect2Reader() {
+KinectReaderV2::~KinectReaderV2() {
   StopDevice();
   if (device_) {
     device_->close();
@@ -25,23 +25,23 @@ Kinect2Reader::~Kinect2Reader() {
   if (listener_) delete listener_;
 }
 
-bool Kinect2Reader::FindDevice() {
+bool KinectReaderV2::FindDevice() {
   if (freenect2_.enumerateDevices() == 0) {
     return false;
   }
 
   std::string serial = freenect2_.getDefaultDeviceSerialNumber();
   switch (config_.packet_pipeline_type()) {
-    case Kinect2Config::OPENGL:
+    case KinectConfigV2::OPENGL:
       pipeline_ = new libfreenect2::OpenGLPacketPipeline();
       break;
-    case Kinect2Config::OPENCL:
+    case KinectConfigV2::OPENCL:
       pipeline_ = new libfreenect2::OpenCLPacketPipeline();
       break;
-    case Kinect2Config::CPU:
+    case KinectConfigV2::CPU:
       pipeline_ = new libfreenect2::CpuPacketPipeline();
       break;
-    case Kinect2Config::DUMP:
+    case KinectConfigV2::DUMP:
       pipeline_ = new libfreenect2::DumpPacketPipeline();
       break;
   }
@@ -65,7 +65,7 @@ bool Kinect2Reader::FindDevice() {
   return true;
 }
 
-void Kinect2Reader::StartDevice() {
+void KinectReaderV2::StartDevice() {
   if (config_.rgb() && config_.depth()) {
     running_ = !device_->start();
   } else {
@@ -74,7 +74,7 @@ void Kinect2Reader::StartDevice() {
   Loop();
 }
 
-void Kinect2Reader::Loop() {
+void KinectReaderV2::Loop() {
   while (running_) {
     if (!listener_->waitForNewFrame(frame_map_, config_.timeout())) {
       continue;
@@ -100,7 +100,7 @@ void Kinect2Reader::Loop() {
   }
 }
 
-void Kinect2Reader::ProcessRGBFrame(const libfreenect2::Frame* rgb) {
+void KinectReaderV2::ProcessRGBFrame(const libfreenect2::Frame* rgb) {
   assert((rgb->format == libfreenect2::Frame::Format::BGRX ||
           rgb->format == libfreenect2::Frame::Format::RGBX));
   int w = rgb->width;
@@ -132,7 +132,7 @@ void Kinect2Reader::ProcessRGBFrame(const libfreenect2::Frame* rgb) {
   frame_.set_allocated_rgb_frame(rgb_frame);
 }
 
-void Kinect2Reader::ProcessIRFrame(const libfreenect2::Frame* ir) {
+void KinectReaderV2::ProcessIRFrame(const libfreenect2::Frame* ir) {
   assert(ir->format == libfreenect2::Frame::Format::Float);
   int w = ir->width;
   int h = ir->height;
@@ -151,7 +151,7 @@ void Kinect2Reader::ProcessIRFrame(const libfreenect2::Frame* ir) {
   frame_.set_allocated_ir_frame(ir_frame);
 }
 
-void Kinect2Reader::ProcessDepthFrame(const libfreenect2::Frame* depth) {
+void KinectReaderV2::ProcessDepthFrame(const libfreenect2::Frame* depth) {
   assert(depth->format == libfreenect2::Frame::Format::Float);
   int w = depth->width;
   int h = depth->height;
@@ -170,13 +170,13 @@ void Kinect2Reader::ProcessDepthFrame(const libfreenect2::Frame* depth) {
   frame_.set_allocated_depth_frame(depth_frame);
 }
 
-void Kinect2Reader::PauseDevice() {
+void KinectReaderV2::PauseDevice() {
   if (device_) {
     device_->stop();
   }
 }
 
-void Kinect2Reader::StopDevice() {
+void KinectReaderV2::StopDevice() {
   PauseDevice();
   running_ = false;
 }

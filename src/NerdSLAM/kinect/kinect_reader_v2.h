@@ -1,5 +1,5 @@
-#ifndef KINECT_V2_READER_H
-#define KINECT_V2_READER_H
+#ifndef KINECT_READER_V2_H
+#define KINECT_READER_V2_H
 
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/libfreenect2.hpp>
@@ -8,11 +8,11 @@
 namespace nerd {
 namespace slam {
 
-class Kinect2Reader : public KinectReader {
+class KinectReaderV2 : public KinectReader {
  public:
-  Kinect2Reader();
-  Kinect2Reader(const Kinect2Config& config);
-  ~Kinect2Reader();
+  KinectReaderV2();
+  KinectReaderV2(const KinectConfigV2& config);
+  ~KinectReaderV2();
   virtual bool FindDevice() override;
   virtual void StartDevice() override;
   virtual void PauseDevice() override;
@@ -24,7 +24,7 @@ class Kinect2Reader : public KinectReader {
   void ProcessIRFrame(const libfreenect2::Frame* ir);
   void ProcessDepthFrame(const libfreenect2::Frame* depth);
 
-  Kinect2Config config_;
+  KinectConfigV2 config_;
 
   libfreenect2::Freenect2 freenect2_;
   libfreenect2::Freenect2Device* device_;
@@ -36,4 +36,4 @@ class Kinect2Reader : public KinectReader {
 } /* end of slam namespace */
 } /* end of nerd namespace */
 
-#endif /* end of include guard: KINECT_V2_READER_H */
+#endif /* end of include guard: KINECT_READER_V2_H */
