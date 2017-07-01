@@ -14,12 +14,22 @@ message KinectConfigV2 {
     FILE = 1;
   }
   required LoggerType logger_type = 2;
+  required string log_filepath = 3;
 
-  required bool rgb = 3;
-  required bool ir = 4;
-  required bool depth = 5;
-  required bool registration = 6;
-  required int32 timeout = 7;
+  enum LogLevel {
+    DEBUGGING = 0;
+    INFO = 1;
+    WARNING = 2;
+    ERROR = 3;
+  }
+  required LogLevel log_level = 4;
+
+  required bool rgb = 5;
+  required bool ir = 6;
+  required bool depth = 7;
+  required bool registration = 8;
+  required int32 timeout = 9;
+
 }
 
 message Frame {
