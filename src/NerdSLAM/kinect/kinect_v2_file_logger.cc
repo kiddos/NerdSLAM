@@ -14,6 +14,7 @@ KinectV2FileLogger::KinectV2FileLogger(const std::string& filepath,
        << ".log";
     logfile_.open(ss.str(), std::ios::out);
   }
+  level_ = level;
 }
 
 void KinectV2FileLogger::log(libfreenect2::Logger::Level level,
