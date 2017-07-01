@@ -4,6 +4,7 @@
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/registration.h>
 #include <libfreenect2/libfreenect2.hpp>
+#include <libfreenect2/logger.h>
 #include "NerdSLAM/kinect/kinect_reader.h"
 
 namespace nerd {
@@ -30,6 +31,7 @@ class KinectReaderV2 : public KinectReader {
   KinectConfigV2 config_;
 
   libfreenect2::Freenect2 freenect2_;
+  libfreenect2::Logger* logger_;
   libfreenect2::Freenect2Device* device_;
   libfreenect2::PacketPipeline* pipeline_;
   libfreenect2::FrameMap frame_map_;

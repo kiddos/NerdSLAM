@@ -4,12 +4,15 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "NerdSLAM/kinect/kinect_v2_console_logger.h"
+#include "NerdSLAM/kinect/kinect_v2_file_logger.h"
 
 namespace nerd {
 namespace slam {
 
 KinectReaderV2::KinectReaderV2()
-    : device_(nullptr),
+    : logger_(nullptr),
+      device_(nullptr),
       pipeline_(nullptr),
       listener_(nullptr),
       registration_(nullptr),
@@ -18,6 +21,7 @@ KinectReaderV2::KinectReaderV2()
 
 KinectReaderV2::KinectReaderV2(const KinectConfigV2& config)
     : config_(config),
+      logger_(nullptr),
       device_(nullptr),
       pipeline_(nullptr),
       listener_(nullptr),
@@ -38,14 +42,39 @@ KinectReaderV2::~KinectReaderV2() {
 }
 
 bool KinectReaderV2::FindDevice() {
+  // skip if device already setup
   if (device_) {
     return true;
   }
+
+  // setup logger
+  libfreenect2::Logger::Level level;
+  switch (config_.log_level()) {
+    case KinectConfigV2::DEBUGGING:
+      level = libfreenect2::Logger::Level::Debug;
+      break;
+    case KinectConfigV2::INFO:
+      level = libfreenect2::Logger::Level::Info;
+      break;
+    case KinectConfigV2::WARNING:
+      level = libfreenect2::Logger::Level::Warning;
+      break;
+    case KinectConfigV2::ERROR:
+      level = libfreenect2::Logger::Level::Error;
+      break;
+  }
+  if (config_.logger_type() == KinectConfigV2::FILE) {
+    logger_ = new KinectV2FileLogger(config_.log_filepath(), level);
+  } else {
+    logger_ = new KinectV2ConsoleLogger(level);
+  }
+  libfreenect2::setGlobalLogger(logger_);
 
   if (freenect2_.enumerateDevices() == 0) {
     return false;
   }
 
+  // setup device
   std::string serial = freenect2_.getDefaultDeviceSerialNumber();
   switch (config_.packet_pipeline_type()) {
     case KinectConfigV2::OPENGL:
