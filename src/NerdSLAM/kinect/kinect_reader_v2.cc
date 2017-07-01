@@ -1,5 +1,8 @@
 #include "NerdSLAM/kinect/kinect_reader_v2.h"
+#include <chrono>
+#include <cstdlib>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace nerd {
@@ -8,24 +11,37 @@ namespace slam {
 KinectReaderV2::KinectReaderV2()
     : device_(nullptr),
       pipeline_(nullptr),
-      listener_(nullptr) {}
+      listener_(nullptr),
+      registration_(nullptr),
+      undistorted_(nullptr),
+      registered_(nullptr) {}
 
 KinectReaderV2::KinectReaderV2(const KinectConfigV2& config)
     : config_(config),
       device_(nullptr),
       pipeline_(nullptr),
-      listener_(nullptr) {}
+      listener_(nullptr),
+      registration_(nullptr),
+      undistorted_(nullptr),
+      registered_(nullptr) {}
 
 KinectReaderV2::~KinectReaderV2() {
   StopDevice();
+  if (undistorted_) delete undistorted_;
+  if (registered_) delete registered_;
+  if (registration_) delete registration_;
+  if (listener_) delete listener_;
   if (device_) {
     device_->close();
     delete device_;
   }
-  if (listener_) delete listener_;
 }
 
 bool KinectReaderV2::FindDevice() {
+  if (device_) {
+    return true;
+  }
+
   if (freenect2_.enumerateDevices() == 0) {
     return false;
   }
@@ -58,6 +74,12 @@ bool KinectReaderV2::FindDevice() {
   if (config_.ir()) {
     types |= libfreenect2::Frame::Ir;
   }
+  if (config_.registration()) {
+    types |= libfreenect2::Frame::Color;
+    types |= libfreenect2::Frame::Depth;
+    registration_ = new libfreenect2::Registration(
+        device_->getIrCameraParams(), device_->getColorCameraParams());
+  }
 
   listener_ = new libfreenect2::SyncMultiFrameListener(types);
   device_->setColorFrameListener(listener_);
@@ -67,11 +89,22 @@ bool KinectReaderV2::FindDevice() {
 
 void KinectReaderV2::StartDevice() {
   if (config_.rgb() && config_.depth()) {
-    running_ = !device_->start();
+    running_ = device_->start();
   } else {
-    running_ = !device_->startStreams(config_.rgb(), config_.depth());
+    running_ = device_->startStreams(config_.rgb(), config_.depth());
   }
   Loop();
+}
+
+void KinectReaderV2::PauseDevice() {
+  if (device_) {
+    device_->stop();
+  }
+}
+
+void KinectReaderV2::StopDevice() {
+  PauseDevice();
+  running_ = false;
 }
 
 void KinectReaderV2::Loop() {
@@ -93,9 +126,19 @@ void KinectReaderV2::Loop() {
       libfreenect2::Frame* depth = frame_map_[libfreenect2::Frame::Depth];
       ProcessDepthFrame(depth);
     }
+    if (config_.registration()) {
+      Register(frame_map_[libfreenect2::Frame::Color],
+               frame_map_[libfreenect2::Frame::Depth]);
+    }
 
     if (frame_handler_) {
       frame_handler_(frame_);
+    }
+    listener_->release(frame_map_);
+
+    if (config_.timeout() > 0) {
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(config_.timeout()));
     }
   }
 }
@@ -107,29 +150,11 @@ void KinectReaderV2::ProcessRGBFrame(const libfreenect2::Frame* rgb) {
   int h = rgb->height;
 
   // create rgb frame
-  RGBFrame* rgb_frame = new RGBFrame;
-  rgb_frame->set_width(w);
-  rgb_frame->set_height(h);
-  std::vector<char> buffer(w * h * 3);
-  if (rgb->format == libfreenect2::Frame::Format::BGRX) {
-    for (int i = 0; i < h; ++i) {
-      for (int j = 0; j < w; ++j) {
-        buffer[(i * w + j) * 3] = rgb->data[(i * w + j) * 4 + 2];
-        buffer[(i * w + j) * 3 + 1] = rgb->data[(i * w + j) * 4 + 1];
-        buffer[(i * w + j) * 3 + 2] = rgb->data[(i * w + j) * 4];
-      }
-    }
-  } else if (rgb->format == libfreenect2::Frame::Format::RGBX) {
-    for (int i = 0; i < h; ++i) {
-      for (int j = 0; j < w; ++j) {
-        buffer[(i * w + j) * 3] = rgb->data[(i * w + j) * 4];
-        buffer[(i * w + j) * 3 + 1] = rgb->data[(i * w + j) * 4 + 1];
-        buffer[(i * w + j) * 3 + 2] = rgb->data[(i * w + j) * 4 + 2];
-      }
-    }
-  }
-  rgb_frame->set_data(&buffer[0], buffer.size());
-  frame_.set_allocated_rgb_frame(rgb_frame);
+  Frame* color_frame = new Frame;
+  color_frame->set_width(w);
+  color_frame->set_height(h);
+  color_frame->set_data(rgb->data, w * h * 4);
+  frame_.set_allocated_color_frame(color_frame);
 }
 
 void KinectReaderV2::ProcessIRFrame(const libfreenect2::Frame* ir) {
@@ -137,17 +162,10 @@ void KinectReaderV2::ProcessIRFrame(const libfreenect2::Frame* ir) {
   int w = ir->width;
   int h = ir->height;
 
-  IRFrame* ir_frame = new IRFrame;
+  Frame* ir_frame = new Frame;
   ir_frame->set_width(w);
   ir_frame->set_height(h);
-  std::vector<float> buffer(w * h);
-  const float* data = reinterpret_cast<float*>(ir->data);
-  for (int i = 0; i < h; ++i) {
-    for (int j = 0; j < w; ++j) {
-      buffer[i * w + j] = data[i * w + j];
-    }
-  }
-  ir_frame->set_data(&buffer[0], buffer.size() * sizeof(float));
+  ir_frame->set_data(ir->data, w * h * sizeof(float));
   frame_.set_allocated_ir_frame(ir_frame);
 }
 
@@ -156,29 +174,36 @@ void KinectReaderV2::ProcessDepthFrame(const libfreenect2::Frame* depth) {
   int w = depth->width;
   int h = depth->height;
 
-  DepthFrame* depth_frame = new DepthFrame;
+  Frame* depth_frame = new Frame;
   depth_frame->set_width(w);
   depth_frame->set_height(h);
-  std::vector<float> buffer(w * h);
-  const float* data = reinterpret_cast<float*>(depth->data);
-  for (int i = 0; i < h; ++i) {
-    for (int j = 0; j < w; ++j) {
-      buffer[i * w + j] = data[i * w + j];
-    }
-  }
-  depth_frame->set_data(&buffer[0], buffer.size() * sizeof(float));
+  depth_frame->set_data(depth->data, w * h * sizeof(float));
   frame_.set_allocated_depth_frame(depth_frame);
 }
 
-void KinectReaderV2::PauseDevice() {
-  if (device_) {
-    device_->stop();
+void KinectReaderV2::Register(const libfreenect2::Frame* rgb,
+                              const libfreenect2::Frame* depth) {
+  int w = depth->width;
+  int h = depth->height;
+  if (!undistorted_) {
+    undistorted_ = new libfreenect2::Frame(w, h, 4);
   }
-}
+  if (!registered_) {
+    registered_ = new libfreenect2::Frame(w, h, 4);
+  }
+  registration_->apply(rgb, depth, undistorted_, registered_);
 
-void KinectReaderV2::StopDevice() {
-  PauseDevice();
-  running_ = false;
+  Frame* undistored_frame = new Frame;
+  undistored_frame->set_width(w);
+  undistored_frame->set_height(h);
+  undistored_frame->set_data(undistorted_->data, w * h * 4);
+  frame_.set_allocated_undistored_frame(undistored_frame);
+
+  Frame* registered_frame = new Frame;
+  registered_frame->set_width(w);
+  registered_frame->set_height(h);
+  registered_frame->set_data(registered_->data, w * h * 4);
+  frame_.set_allocated_registered_frame(registered_frame);
 }
 
 } /* end of slam namespace */
