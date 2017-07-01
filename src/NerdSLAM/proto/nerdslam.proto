@@ -1,0 +1,46 @@
+package nerd.slam;
+
+message Kinect2Config {
+  enum PacketPipelineType {
+    OPENGL = 0;
+    OPENCL = 1;
+    CPU = 2;
+    DUMP = 3;
+  }
+  required PacketPipelineType packet_pipeline_type = 1;
+
+  enum LoggerType {
+    CONSOLE = 0;
+    FILE = 1;
+  }
+  required LoggerType logger_type = 2;
+
+  required bool rgb = 3;
+  required bool ir = 4;
+  required bool depth = 5;
+  required int32 timeout = 6;
+}
+
+message RGBFrame {
+  required int32 width = 1;
+  required int32 height = 2;
+  required bytes data = 3;
+}
+
+message IRFrame {
+  required int32 width = 1;
+  required int32 height = 2;
+  required bytes data = 3;
+}
+
+message DepthFrame {
+  required int32 width = 1;
+  required int32 height = 2;
+  required bytes data = 3;
+}
+
+message Frame {
+  required RGBFrame rgb_frame = 1;
+  required IRFrame ir_frame = 2;
+  required DepthFrame depth_frame = 3;
+}
