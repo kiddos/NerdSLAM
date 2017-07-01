@@ -1,48 +1,111 @@
 #include <gtest/gtest.h>
+#include <chrono>
+#include <iostream>
 #include <thread>
+#include <vector>
 #include "NerdSLAM/kinect/kinect_reader_v2.h"
 
-using nerd::slam::Kinect2Reader;
-using nerd::slam::Kinect2Config;
+using nerd::slam::KinectReaderV2;
+using nerd::slam::KinectConfigV2;
+using nerd::slam::FrameMap;
 using nerd::slam::Frame;
-using nerd::slam::RGBFrame;
-using nerd::slam::IRFrame;
-using nerd::slam::DepthFrame;
 
-TEST(TestKinectReaderV2, FindDevice) {
-  Kinect2Config config;
-  Kinect2Reader reader(config);
-  EXPECT_TRUE(reader.FindDevice());
-}
+class TestKinectReaderV2 : public ::testing::Test {
+ public:
+  TestKinectReaderV2() : reader_(nullptr) {}
 
-TEST(TestKinectReaderV2, CaptureFrame) {
-  Kinect2Config config;
-  config.set_rgb(true);
-  config.set_ir(true);
-  config.set_depth(true);
-  Kinect2Reader reader(config);
-
-  int frame_count = 0;
-  reader.set_frame_hander([&reader, &frame_count](const Frame& f) -> void {
-    // test rgb frame
-    RGBFrame rgb = f.rgb_frame();
-    EXPECT_EQ(rgb.data().size(), rgb.width() * rgb.height() * 3);
-    // test ir frame
-    IRFrame ir = f.ir_frame();
-    EXPECT_EQ(ir.data().size(), ir.width() * ir.height());
-    // test depth frame
-    DepthFrame depth = f.depth_frame();
-    EXPECT_EQ(depth.data().size(), depth.width() * depth.height());
-
-    frame_count += 1;
-    if (frame_count >= 100) {
-      reader.StopDevice();
+  virtual ~TestKinectReaderV2() {
+    if (reader_) {
+      delete reader_;
     }
-  });
-  if (reader.FindDevice()) {
-    reader.StartDevice();
   }
-}
 
-TEST(TestKinectReaderV2, AsyncCaptureFrame) {
-}
+  virtual void SetUp() override {
+    config_.set_rgb(true);
+    config_.set_ir(true);
+    config_.set_depth(true);
+    config_.set_registration(true);
+    reader_ = new KinectReaderV2(config_);
+  }
+
+  virtual void TearDown() override {}
+
+  void TestFindDevice() { EXPECT_TRUE(reader_->FindDevice()); }
+
+  void TestCaptureFrame() {
+    std::vector<FrameMap> frames;
+    constexpr int max_frame_count = 100;
+    int frame_count = 0;
+    reader_->set_frame_hander([this, &frame_count,
+                               &frames](const FrameMap& frame) {
+      // test rgb frame
+      Frame color = frame.color_frame();
+      EXPECT_EQ(color.data().size(), color.width() * color.height() * 4);
+      // test ir frame
+      Frame ir = frame.ir_frame();
+      EXPECT_EQ(ir.data().size(), ir.width() * ir.height() * sizeof(float));
+      // test depth frame
+      Frame depth = frame.depth_frame();
+      EXPECT_EQ(depth.data().size(),
+                depth.width() * depth.height() * sizeof(float));
+
+      frames.push_back(frame);
+      frame_count += 1;
+      if (frame_count >= max_frame_count) {
+        reader_->StopDevice();
+      }
+    });
+    if (reader_->FindDevice()) {
+      reader_->StartDevice();
+    }
+    EXPECT_EQ(frames.size(), max_frame_count);
+  }
+
+  void TestCaptureAsync() {
+    std::vector<FrameMap> frames;
+    constexpr int max_frame_count = 100;
+    int frame_count = 0;
+    reader_->set_frame_hander([this, &frame_count,
+                               &frames](const FrameMap& frame) {
+      // test rgb frame
+      Frame color = frame.color_frame();
+      EXPECT_EQ(color.data().size(), color.width() * color.height() * 4);
+      // test ir frame
+      Frame ir = frame.ir_frame();
+      EXPECT_EQ(ir.data().size(), ir.width() * ir.height() * sizeof(float));
+      // test depth frame
+      Frame depth = frame.depth_frame();
+      EXPECT_EQ(depth.data().size(),
+                depth.width() * depth.height() * sizeof(float));
+
+      frames.push_back(frame);
+      frame_count += 1;
+      if (frame_count >= max_frame_count) {
+        reader_->StopDevice();
+      }
+    });
+
+    std::thread capture_task([this]() {
+      if (reader_->FindDevice()) {
+        reader_->StartDevice();
+      }
+    });
+
+    do {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (reader_->is_running());
+
+    capture_task.join();
+    EXPECT_EQ(frames.size(), max_frame_count);
+  }
+
+ private:
+  KinectConfigV2 config_;
+  KinectReaderV2* reader_;
+};
+
+TEST_F(TestKinectReaderV2, FindDevice) { TestFindDevice(); }
+
+TEST_F(TestKinectReaderV2, CaptureFrame) { TestCaptureFrame(); }
+
+TEST_F(TestKinectReaderV2, AsyncCaptureFrame) { TestCaptureAsync(); }
