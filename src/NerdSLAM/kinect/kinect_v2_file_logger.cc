@@ -18,8 +18,10 @@ KinectV2FileLogger::KinectV2FileLogger(const std::string& filepath,
 
 void KinectV2FileLogger::log(libfreenect2::Logger::Level level,
                              const std::string& message) {
-  logfile_ << "[" << libfreenect2::Logger::level2str(level) << "] " << message
-           << std::endl;
+  if (ok()) {
+    logfile_ << "[" << libfreenect2::Logger::level2str(level) << "] "
+             << message << std::endl;
+  }
 }
 
 } /* end of slam namespace */
