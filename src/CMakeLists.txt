@@ -29,7 +29,7 @@ file(GLOB_RECURSE SLAM_SOURCE NerdSLAM/*.h NerdSLAM/*.cc)
 
 find_library(freenect2_LIBRARIES freenect2)
 if (freenect2_LIBRARIES)
-  message(STATUS "found freenect2: ${freenect2_LIBRARIES}")
+  message(STATUS "building kinect v2 support with ${freenect2_LIBRARIES}")
   find_package(OpenCL REQUIRED)
   file(GLOB KINECT_SOURCE NerdSLAM/kinect/kinect_reader_v2.*
     NerdSLAM/kinect/kinect_v2_console_logger.*
@@ -40,5 +40,27 @@ else ()
   set(KINECT_SOURCE "")
 endif ()
 
+# build core library
 add_library(NerdSLAM ${SLAM_SOURCE} ${KINECT_SOURCE}
   ${SLAM_PROTO_SOURCE} ${SLAM_PROTO_HEADERS})
+
+# optionals
+find_library(OpenCV_CORE opencv_core)
+find_library(OpenCV_HIGHGUI opencv_highgui)
+find_library(OpenCV_IMGCODECS opencv_imgcodecs)
+find_library(OpenCV_VIDEO opencv_videostab)
+find_library(OpenCV_VIDEOIO opencv_videoio)
+if (OpenCV_CORE AND OpenCV_HIGHGUI AND OpenCV_VIDEOIO)
+  set(OpenCV_LIBRARIES ${OpenCV_CORE} ${OpenCV_HIGHGUI}
+    ${OpenCV_IMGCODECS} ${OpenCV_VIDEOIO} ${OpenCV_VIDEO})
+endif ()
+if (OpenCV_LIBRARIES AND freenect2_LIBRARIES)
+  message(STATUS "building kinect display and sampler: ${OpenCV_LIBRARIES}")
+  include_directories(${OpenCV_INCLUDE_DIRS})
+  link_libraries(${OpenCV_LIBRARIES})
+
+  file(GLOB KINECT_2D_DISPLAY_SOURCE
+    NerdSLAM/kinect/kinect_2d_display*)
+  add_executable(kinect_2d_display ${KINECT_2D_DISPLAY_SOURCE})
+  target_link_libraries(kinect_2d_display NerdSLAM)
+endif ()
