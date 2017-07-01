@@ -6,6 +6,7 @@
 
 namespace nerd {
 namespace slam {
+namespace v2 {
 
 class KinectV2ConsoleLogger : public libfreenect2::Logger {
  public:
@@ -20,6 +21,7 @@ class KinectV2ConsoleLogger : public libfreenect2::Logger {
   std::string GetTimeString();
 };
 
+} /* end of v2 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */
 

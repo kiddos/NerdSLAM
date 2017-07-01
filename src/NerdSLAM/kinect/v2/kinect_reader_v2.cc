@@ -1,14 +1,15 @@
-#include "NerdSLAM/kinect/kinect_reader_v2.h"
+#include "NerdSLAM/kinect/v2/kinect_reader_v2.h"
 #include <chrono>
 #include <cstdlib>
 #include <string>
 #include <thread>
 #include <vector>
-#include "NerdSLAM/kinect/kinect_v2_console_logger.h"
-#include "NerdSLAM/kinect/kinect_v2_file_logger.h"
+#include "NerdSLAM/kinect/v2/kinect_console_logger.h"
+#include "NerdSLAM/kinect/v2/kinect_file_logger.h"
 
 namespace nerd {
 namespace slam {
+namespace v2 {
 
 KinectReaderV2::KinectReaderV2()
     : logger_(nullptr),
@@ -235,5 +236,6 @@ void KinectReaderV2::Register(const libfreenect2::Frame* rgb,
   frame_.set_allocated_registered_frame(registered_frame);
 }
 
+} /* end of v2 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */

@@ -1,10 +1,11 @@
-#include "NerdSLAM/kinect/kinect_v2_console_logger.h"
+#include "NerdSLAM/kinect/v2/kinect_console_logger.h"
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
 namespace nerd {
 namespace slam {
+namespace v2 {
 
 KinectV2ConsoleLogger::KinectV2ConsoleLogger(
     libfreenect2::Logger::Level level) {
@@ -55,5 +56,6 @@ std::string KinectV2ConsoleLogger::GetTimeString() {
   return ss.str();
 }
 
+} /* end of v2 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */

@@ -3,9 +3,9 @@
 #include <iostream>
 #include <thread>
 #include <vector>
-#include "NerdSLAM/kinect/kinect_reader_v2.h"
+#include "NerdSLAM/kinect/v2/kinect_reader_v2.h"
 
-using nerd::slam::KinectReaderV2;
+using nerd::slam::v2::KinectReaderV2;
 using nerd::slam::KinectConfigV2;
 using nerd::slam::FrameMap;
 using nerd::slam::Frame;

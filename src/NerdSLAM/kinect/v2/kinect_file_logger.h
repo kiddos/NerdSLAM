@@ -7,6 +7,7 @@
 
 namespace nerd {
 namespace slam {
+namespace v2 {
 
 class KinectV2FileLogger : public libfreenect2::Logger {
  public:
@@ -23,6 +24,7 @@ class KinectV2FileLogger : public libfreenect2::Logger {
   std::ofstream logfile_;
 };
 
+} /* end of v2 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */
 

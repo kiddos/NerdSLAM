@@ -9,6 +9,7 @@
 
 namespace nerd {
 namespace slam {
+namespace v2 {
 
 class KinectReaderV2 : public KinectReader {
  public:
@@ -41,6 +42,7 @@ class KinectReaderV2 : public KinectReader {
   libfreenect2::Frame* registered_;
 };
 
+} /* end of v2 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */
 
