@@ -12,6 +12,7 @@ class KinectV2FileLogger : public libfreenect2::Logger {
  public:
   KinectV2FileLogger(const std::string& filepath,
                      libfreenect2::Logger::Level level);
+  virtual ~KinectV2FileLogger();
 
   bool ok() { return logfile_.is_open() && logfile_.good(); }
 

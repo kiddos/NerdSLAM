@@ -17,8 +17,15 @@ KinectV2FileLogger::KinectV2FileLogger(const std::string& filepath,
   level_ = level;
 }
 
+KinectV2FileLogger::~KinectV2FileLogger() {
+  if (logfile_.is_open()) {
+    logfile_.close();
+  }
+}
+
 void KinectV2FileLogger::log(libfreenect2::Logger::Level level,
                              const std::string& message) {
+  if (level > level_ || level == libfreenect2::Logger::Level::None) return;
   if (ok()) {
     logfile_ << "[" << libfreenect2::Logger::level2str(level) << "] "
              << message << std::endl;
