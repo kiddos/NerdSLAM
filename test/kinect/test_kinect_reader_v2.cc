@@ -49,6 +49,12 @@ class TestKinectReaderV2 : public ::testing::Test {
       EXPECT_EQ(depth.data().size(),
                 depth.width() * depth.height() * sizeof(float));
 
+      Frame undistorted = frame.undistored_frame();
+      EXPECT_EQ(undistorted.data().size(), depth.width() * depth.height() * 4);
+
+      Frame registered = frame.registered_frame();
+      EXPECT_EQ(registered.data().size(), depth.width() * depth.height() * 4);
+
       frames.push_back(frame);
       frame_count += 1;
       if (frame_count >= max_frame_count) {
@@ -77,6 +83,12 @@ class TestKinectReaderV2 : public ::testing::Test {
       Frame depth = frame.depth_frame();
       EXPECT_EQ(depth.data().size(),
                 depth.width() * depth.height() * sizeof(float));
+
+      Frame undistorted = frame.undistored_frame();
+      EXPECT_EQ(undistorted.data().size(), depth.width() * depth.height() * 4);
+
+      Frame registered = frame.registered_frame();
+      EXPECT_EQ(registered.data().size(), depth.width() * depth.height() * 4);
 
       frames.push_back(frame);
       frame_count += 1;
