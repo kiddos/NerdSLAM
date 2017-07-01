@@ -16,7 +16,7 @@ class KinectV2FileLogger : public libfreenect2::Logger {
   bool ok() { return logfile_.is_open() && logfile_.good(); }
 
   virtual void log(libfreenect2::Logger::Level level,
-                   const std::string& message);
+                   const std::string& message) override;
 
  private:
   std::ofstream logfile_;
