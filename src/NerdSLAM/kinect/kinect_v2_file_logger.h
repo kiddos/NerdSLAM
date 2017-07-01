@@ -8,7 +8,7 @@
 namespace nerd {
 namespace slam {
 
-class KinectV2FileLogger : libfreenect2::Logger {
+class KinectV2FileLogger : public libfreenect2::Logger {
  public:
   KinectV2FileLogger(const std::string& filepath,
                      libfreenect2::Logger::Level level);
