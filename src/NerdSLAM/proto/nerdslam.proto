@@ -18,29 +18,20 @@ message KinectConfigV2 {
   required bool rgb = 3;
   required bool ir = 4;
   required bool depth = 5;
-  required int32 timeout = 6;
-}
-
-message RGBFrame {
-  required int32 width = 1;
-  required int32 height = 2;
-  required bytes data = 3;
-}
-
-message IRFrame {
-  required int32 width = 1;
-  required int32 height = 2;
-  required bytes data = 3;
-}
-
-message DepthFrame {
-  required int32 width = 1;
-  required int32 height = 2;
-  required bytes data = 3;
+  required bool registration = 6;
+  required int32 timeout = 7;
 }
 
 message Frame {
-  required RGBFrame rgb_frame = 1;
-  required IRFrame ir_frame = 2;
-  required DepthFrame depth_frame = 3;
+  required int32 width = 1;
+  required int32 height = 2;
+  required bytes data = 3;
+}
+
+message FrameMap {
+  required Frame color_frame = 1;
+  required Frame ir_frame = 2;
+  required Frame depth_frame = 3;
+  required Frame undistored_frame = 4;
+  required Frame registered_frame = 5;
 }
