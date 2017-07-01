@@ -45,3 +45,12 @@ message FrameMap {
   required Frame undistored_frame = 4;
   required Frame registered_frame = 5;
 }
+
+message OpenGLWindowConfig {
+  required int32 width = 1;
+  required int32 height = 2;
+  required string title = 3;
+  required int32 major_version = 4;
+  required int32 minor_version = 5;
+  required bool debug = 6;
+}
