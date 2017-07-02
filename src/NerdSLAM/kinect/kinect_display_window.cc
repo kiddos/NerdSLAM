@@ -11,8 +11,6 @@ KinectDisplayWindow::KinectDisplayWindow(const OpenGLWindowConfig& config)
 
 KinectDisplayWindow::~KinectDisplayWindow() {
   if (reader_) delete reader_;
-  if (window_) glfwDestroyWindow(window_);
-  glfwTerminate();
 }
 
 bool KinectDisplayWindow::Init() {
