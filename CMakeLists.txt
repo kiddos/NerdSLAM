@@ -13,3 +13,6 @@ endif ()
 enable_testing()
 add_subdirectory(src)
 add_subdirectory(test)
+
+# copy shaders
+file(COPY shaders DESTINATION ${CMAKE_BINARY_DIR})
