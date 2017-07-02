@@ -11,10 +11,9 @@ nerds builds it, nerds plays it.
   - Boost
   - Protobuf
   - Lua5.2
+  - GLEW
+  - GLFW
 
 * Optional
   - libfreenect
   - libfreenect2
-  - OpenCL
-  - GLEW
-  - GLUT
