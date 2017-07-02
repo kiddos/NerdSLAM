@@ -1,80 +1,79 @@
 #include "NerdSLAM/kinect/kinect_display_window.h"
 #include <boost/bind.hpp>
 #include <iostream>
+#include "NerdSLAM/kinect/v2/kinect_reader_v2.h"
 
 namespace nerd {
 namespace slam {
 
 KinectDisplayWindow::KinectDisplayWindow(const OpenGLWindowConfig& config)
-    : config_(config), window_(nullptr) {}
+    : OpenGLWindow(config) {}
 
 KinectDisplayWindow::~KinectDisplayWindow() {
+  if (reader_) delete reader_;
   if (window_) glfwDestroyWindow(window_);
   glfwTerminate();
 }
 
 bool KinectDisplayWindow::Init() {
-  if (!glfwInit()) {
+  OpenGLWindow::Init();
+  // setup frames
+  if (!rgb_frame_.Init("shaders/kinect_frame_2d.vert",
+                       "shaders/kinect_frame_rgb.frag")) {
     return false;
   }
 
-  glfwSetErrorCallback([](int error, const char* desc) {
-    std::cerr << "[\x1B[31mERROR\x1B[0m] "
-              << "error code: " << error << " | " << desc << '\n';
+  // setup kinect reader
+  KinectConfigV2 config;
+  config.set_rgb(true);
+  reader_ = new v2::KinectReaderV2(config);
+  if (!reader_->FindDevice()) {
+    return false;
+  }
+
+  glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int scancode,
+      int action, int mods) {
+    if (action == GLFW_PRESS) {
+      if (key == GLFW_KEY_ESCAPE) {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+      }
+    }
   });
 
-  // set API version
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, config_.major_version());
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, config_.minor_version());
-  glfwWindowHint(GLFW_SAMPLES, 16);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  if (config_.debug()) {
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-  }
-  // glfw window
-  window_ = glfwCreateWindow(config_.width(), config_.height(),
-                             config_.title().c_str(), nullptr, nullptr);
-  if (!window_) {
-    return false;
-  }
-  // set current context
-  glfwMakeContextCurrent(window_);
-
-  glfwSetInputMode(window_, GLFW_STICKY_KEYS, GL_TRUE);
-  glfwSetKeyCallback(window_,
-                     [](GLFWwindow* window, int key, int, int action, int) {
-                       if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-                         glfwSetWindowShouldClose(window, GL_TRUE);
-                       }
-                     });
-
-  GLenum error = glewInit();
-  if (error != GLEW_OK) {
-    return false;
-  }
+  // get time
+  start_time_ = glfwGetTime();
+  frames_ = 0;
+  reader_->set_frame_hander(
+      boost::bind(&KinectDisplayWindow::Render, this, _1));
   return true;
 }
 
+void KinectDisplayWindow::Render(const FrameMap& frames) {
+  // clear buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  int w, h;
+  glfwGetFramebufferSize(window_, &w, &h);
+  glViewport(0, 0, w, h);
+
+  rgb_frame_.UpdateFrame(frames.color_frame());
+  rgb_frame_.Render();
+
+  glfwSwapBuffers(window_);
+  glfwPollEvents();
+
+  double passed = glfwGetTime() - start_time_;
+  ++frames_;
+  std::cout << "\rfps: " << frames_ / passed << std::flush;
+
+  if (glfwWindowShouldClose(window_)) {
+    reader_->StopDevice();
+  }
+}
+
 void KinectDisplayWindow::MainLoop() {
-  // get time
-  double start_time = glfwGetTime();
-  long frames = 0;
-  // main loop
-  while (!glfwWindowShouldClose(window_)) {
-    // get view port
-    int width, height;
-    glfwGetFramebufferSize(window_, &width, &height);
-    glViewport(0, 0, width, height);
-
-    // clear buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-    glfwSwapBuffers(window_);
-    glfwPollEvents();
-    double passed  = glfwGetTime() - start_time;
-    ++frames;
-    std::cout << "\rfps: " << frames / passed << std::flush;
+  if (reader_) {
+    reader_->StartDevice();
   }
 }
 
