@@ -1,6 +1,7 @@
 #include "NerdSLAM/kinect/load_shaders.h"
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 namespace nerd {
 namespace slam {
@@ -45,6 +46,7 @@ bool LoadShaders(const std::string& vertex_shader_fpath,
     std::string error_msg(info_log_length + 1, ' ');
     glGetShaderInfoLog(vertex_shader_id, info_log_length, nullptr,
                        &error_msg[0]);
+    std::cerr << error_msg << '\n';
     return false;
   }
 
@@ -60,6 +62,7 @@ bool LoadShaders(const std::string& vertex_shader_fpath,
     std::string error_msg(info_log_length + 1, ' ');
     glGetShaderInfoLog(fragment_shader_id, info_log_length, nullptr,
                        &error_msg[0]);
+    std::cerr << error_msg << '\n';
     return false;
   }
 
@@ -75,6 +78,8 @@ bool LoadShaders(const std::string& vertex_shader_fpath,
   if (!result && info_log_length > 0) {
     std::string error_msg(info_log_length + 1, ' ');
     glGetProgramInfoLog(program, info_log_length, nullptr, &error_msg[0]);
+    std::cerr << error_msg << '\n';
+    return false;
   }
 
   glDetachShader(program, vertex_shader_id);
