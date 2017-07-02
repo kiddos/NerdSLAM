@@ -184,6 +184,11 @@ void KinectReaderV2::ProcessRGBFrame(const libfreenect2::Frame* rgb) {
   color_frame->set_width(w);
   color_frame->set_height(h);
   color_frame->set_data(rgb->data, w * h * 4);
+  if (rgb->format == libfreenect2::Frame::Format::RGBX) {
+    color_frame->set_type(Frame::RGBX);
+  } else {
+    color_frame->set_type(Frame::BGRX);
+  }
   frame_.set_allocated_color_frame(color_frame);
 }
 
@@ -196,6 +201,7 @@ void KinectReaderV2::ProcessIRFrame(const libfreenect2::Frame* ir) {
   ir_frame->set_width(w);
   ir_frame->set_height(h);
   ir_frame->set_data(ir->data, w * h * sizeof(float));
+  ir_frame->set_type(Frame::FLOAT);
   frame_.set_allocated_ir_frame(ir_frame);
 }
 
@@ -208,6 +214,7 @@ void KinectReaderV2::ProcessDepthFrame(const libfreenect2::Frame* depth) {
   depth_frame->set_width(w);
   depth_frame->set_height(h);
   depth_frame->set_data(depth->data, w * h * sizeof(float));
+  depth_frame->set_type(Frame::FLOAT);
   frame_.set_allocated_depth_frame(depth_frame);
 }
 
