@@ -9,6 +9,7 @@ using nerd::slam::v2::KinectReaderV2;
 using nerd::slam::KinectConfigV2;
 using nerd::slam::FrameMap;
 using nerd::slam::Frame;
+using nerd::slam::PointCloud;
 
 class TestKinectReaderV2 : public ::testing::Test {
  public:
@@ -49,12 +50,9 @@ class TestKinectReaderV2 : public ::testing::Test {
       Frame depth = frame.depth_frame();
       EXPECT_EQ(depth.data().size(),
                 depth.width() * depth.height() * sizeof(float));
-
-      Frame undistorted = frame.undistored_frame();
-      EXPECT_EQ(undistorted.data().size(), depth.width() * depth.height() * 4);
-
-      Frame registered = frame.registered_frame();
-      EXPECT_EQ(registered.data().size(), depth.width() * depth.height() * 4);
+      // test registered points
+      PointCloud cloud = frame.point_cloud();
+      EXPECT_GT(cloud.points().size(), 0);
 
       frames.push_back(frame);
       frame_count += 1;
@@ -84,12 +82,9 @@ class TestKinectReaderV2 : public ::testing::Test {
       Frame depth = frame.depth_frame();
       EXPECT_EQ(depth.data().size(),
                 depth.width() * depth.height() * sizeof(float));
-
-      Frame undistorted = frame.undistored_frame();
-      EXPECT_EQ(undistorted.data().size(), depth.width() * depth.height() * 4);
-
-      Frame registered = frame.registered_frame();
-      EXPECT_EQ(registered.data().size(), depth.width() * depth.height() * 4);
+      // test registered points
+      PointCloud cloud = frame.point_cloud();
+      EXPECT_GT(cloud.points().size(), 0);
 
       frames.push_back(frame);
       frame_count += 1;
