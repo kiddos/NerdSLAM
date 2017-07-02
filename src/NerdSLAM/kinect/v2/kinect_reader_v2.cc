@@ -230,17 +230,26 @@ void KinectReaderV2::Register(const libfreenect2::Frame* rgb,
   }
   registration_->apply(rgb, depth, undistorted_, registered_);
 
-  Frame* undistored_frame = new Frame;
-  undistored_frame->set_width(w);
-  undistored_frame->set_height(h);
-  undistored_frame->set_data(undistorted_->data, w * h * 4);
-  frame_.set_allocated_undistored_frame(undistored_frame);
-
-  Frame* registered_frame = new Frame;
-  registered_frame->set_width(w);
-  registered_frame->set_height(h);
-  registered_frame->set_data(registered_->data, w * h * 4);
-  frame_.set_allocated_registered_frame(registered_frame);
+  PointCloud* cloud = new PointCloud;
+  const float* depth_values = reinterpret_cast<float*>(depth->data);
+  for (int r = 0; r < h; ++r) {
+    for (int c = 0; c < w; ++c) {
+      if (depth_values[r * w + c] > 0) {
+        float x = 0, y = 0, z = 0, rgb = 0;
+        registration_->getPointXYZRGB(undistorted_, registered_, r, c, x, y, z,
+                                      rgb);
+        const uint8_t* rgb_val = reinterpret_cast<uint8_t*>(&rgb);
+        cloud->add_points();
+        cloud->mutable_points(cloud->points_size() - 1)->set_x(x);
+        cloud->mutable_points(cloud->points_size() - 1)->set_y(y);
+        cloud->mutable_points(cloud->points_size() - 1)->set_z(z);
+        cloud->mutable_points(cloud->points_size() - 1)->set_r(rgb_val[0]);
+        cloud->mutable_points(cloud->points_size() - 1)->set_g(rgb_val[1]);
+        cloud->mutable_points(cloud->points_size() - 1)->set_b(rgb_val[2]);
+      }
+    }
+  }
+  frame_.set_allocated_point_cloud(cloud);
 }
 
 } /* end of v2 namespace */
