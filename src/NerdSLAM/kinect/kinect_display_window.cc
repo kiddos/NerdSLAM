@@ -23,7 +23,7 @@ bool KinectDisplayWindow::Init() {
 
   // setup kinect reader
   KinectConfigV2 config;
-  config.set_rgb(true);
+  config.set_registration(true);
   reader_ = new v2::KinectReaderV2(config);
   if (!reader_->FindDevice()) {
     return false;

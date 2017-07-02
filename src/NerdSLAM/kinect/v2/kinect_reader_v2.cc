@@ -95,6 +95,11 @@ bool KinectReaderV2::FindDevice() {
   device_ = freenect2_.openDevice(serial, pipeline_);
 
   int types = 0;
+  if (config_.registration()) {
+    config_.set_rgb(true);
+    config_.set_depth(true);
+    config_.set_ir(true);
+  }
   if (config_.rgb()) {
     types |= libfreenect2::Frame::Color;
   }
@@ -105,8 +110,6 @@ bool KinectReaderV2::FindDevice() {
     types |= libfreenect2::Frame::Ir;
   }
   if (config_.registration()) {
-    types |= libfreenect2::Frame::Color;
-    types |= libfreenect2::Frame::Depth;
     registration_ = new libfreenect2::Registration(
         device_->getIrCameraParams(), device_->getColorCameraParams());
   }
