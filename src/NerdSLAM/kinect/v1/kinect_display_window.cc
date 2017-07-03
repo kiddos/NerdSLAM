@@ -8,7 +8,7 @@ namespace slam {
 namespace v1 {
 
 KinectDisplayWindow::KinectDisplayWindow(const OpenGLWindowConfig& config)
-    : OpenGLWindow(config) {}
+    : OpenGLWindow(config), reader_(nullptr) {}
 
 KinectDisplayWindow::~KinectDisplayWindow() {
   if (reader_) delete reader_;
@@ -26,6 +26,8 @@ bool KinectDisplayWindow::Init() {
   }
 
   KinectConfigV1 config;
+  config.set_rgb(true);
+  config.set_depth(true);
   reader_ = new v1::KinectReaderV1(config);
   if (!reader_->FindDevice()) {
     return false;
@@ -44,7 +46,7 @@ bool KinectDisplayWindow::Init() {
   frames_ = 0;
   reader_->set_frame_hander(
       boost::bind(&KinectDisplayWindow::Render, this, _1));
-  return false;
+  return true;
 }
 
 void KinectDisplayWindow::Render(const FrameMap& frames) {
@@ -72,7 +74,7 @@ void KinectDisplayWindow::Render(const FrameMap& frames) {
 
 void KinectDisplayWindow::MainLoop() {
   if (reader_) {
-    reader_->StartDevice();
+    reader_->Run();
   }
 }
 
