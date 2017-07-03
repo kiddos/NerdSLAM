@@ -75,8 +75,8 @@ void KinectDevice::GetRGB(std::vector<uint8_t>& rgb) {
     rgb_mutex_.lock();
     if (rgb.size() < rgb_.size()) {
       rgb = std::vector<uint8_t>(rgb_.size());
-      std::copy(rgb.begin(), rgb.end(), rgb_.begin());
     }
+    std::copy(rgb_.begin(), rgb_.end(), rgb.begin());
     rgb_mutex_.unlock();
   }
 }
