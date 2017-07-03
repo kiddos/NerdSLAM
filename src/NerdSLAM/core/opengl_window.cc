@@ -47,8 +47,7 @@ bool OpenGLWindow::Init() {
   if (error != GLEW_OK) {
     return false;
   }
-
-  return false;
+  return true;
 }
 
 } /* end of gl namespace */
