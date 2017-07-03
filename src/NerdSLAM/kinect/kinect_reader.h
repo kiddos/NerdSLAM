@@ -12,6 +12,7 @@ class KinectReader {
   KinectReader() : running_(false) {};
   virtual ~KinectReader() {}
   virtual bool FindDevice() = 0;
+  virtual void Run() = 0;
   virtual void StartDevice() = 0;
   virtual void PauseDevice() = 0;
   virtual void StopDevice() = 0;
