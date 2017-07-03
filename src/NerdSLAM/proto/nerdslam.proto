@@ -7,6 +7,9 @@ message KinectConfigV1 {
     YUV_RAW = 2;
   }
   required VideoFormat video_format = 1;
+  required bool rgb = 2;
+  required bool depth = 3;
+  required int32 timeout = 4;
 }
 
 message KinectConfigV2 {
@@ -49,6 +52,7 @@ message Frame {
     RGBX = 1;
     FLOAT = 2;
     GRAY = 3;
+    RGB = 4;
   }
   required Type type = 4;
 }
