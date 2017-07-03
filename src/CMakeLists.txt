@@ -54,6 +54,9 @@ if (freenect_LIBRARIES)
   file(GLOB KINECT_V1_SOURCE
     NerdSLAM/kinect/v1/*.h
     NerdSLAM/kinect/v1/*.cc)
+
+  message(STATUS "building kinect v1 viewer...")
+  add_executable(kinect_display_v1 NerdSLAM/kinect/v1/kinect_display.cc)
 endif ()
 
 find_library(freenect2_LIBRARIES freenect2)
@@ -68,6 +71,9 @@ if (freenect2_LIBRARIES)
     NerdSLAM/kinect/v2/*.cc
     NerdSLAM/kinect/kinect_display_window.*
     NerdSLAM/kinect/kinect_frame.*)
+
+  message(STATUS "building kinect v2 viewer...")
+  add_executable(kinect_display_v2 NerdSLAM/kinect/v2/kinect_display.cc)
 else ()
   set(KINECT_SOURCE "")
 endif ()
@@ -80,29 +86,5 @@ add_library(NerdSLAM
   ${SLAM_PROTO_SOURCE}
   ${SLAM_PROTO_HEADERS})
 
-if (OPENGL_FOUND AND GLFW_FOUND AND GLEW_FOUND)
-  message(STATUS "building kinect viewer...")
-  add_executable(kinect_display_2d NerdSLAM/kinect/kinect_display_2d.cc)
-  target_link_libraries(kinect_display_2d NerdSLAM)
-endif ()
-
-# optionals
-# find_library(OpenCV_CORE opencv_core)
-# find_library(OpenCV_HIGHGUI opencv_highgui)
-# find_library(OpenCV_IMGCODECS opencv_imgcodecs)
-# find_library(OpenCV_VIDEO opencv_videostab)
-# find_library(OpenCV_VIDEOIO opencv_videoio)
-# if (OpenCV_CORE AND OpenCV_HIGHGUI AND OpenCV_VIDEOIO)
-#   set(OpenCV_LIBRARIES ${OpenCV_CORE} ${OpenCV_HIGHGUI}
-#     ${OpenCV_IMGCODECS} ${OpenCV_VIDEOIO} ${OpenCV_VIDEO})
-# endif ()
-# if (OpenCV_LIBRARIES AND freenect2_LIBRARIES)
-#   message(STATUS "building kinect display and sampler: ${OpenCV_LIBRARIES}")
-#   include_directories(${OpenCV_INCLUDE_DIRS})
-#   link_libraries(${OpenCV_LIBRARIES})
-
-#   file(GLOB KINECT_2D_DISPLAY_SOURCE
-#     NerdSLAM/kinect/kinect_2d_display*)
-#   add_executable(kinect_2d_display ${KINECT_2D_DISPLAY_SOURCE})
-#   target_link_libraries(kinect_2d_display NerdSLAM)
-# endif ()
+target_link_libraries(kinect_display_v1 NerdSLAM)
+target_link_libraries(kinect_display_v2 NerdSLAM)
