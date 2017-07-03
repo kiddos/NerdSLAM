@@ -38,8 +38,13 @@ link_libraries(${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARIES})
 
 PROTOBUF_GENERATE_CPP(SLAM_PROTO_SOURCE SLAM_PROTO_HEADERS
   NerdSLAM/proto/nerdslam.proto)
-file(GLOB SLAM_SOURCE NerdSLAM/*.h NerdSLAM/*.cc
-  NerdSLAM/core/*.h NerdSLAM/core/*.cc)
+file(GLOB SLAM_SOURCE
+  NerdSLAM/*.h
+  NerdSLAM/*.cc
+  NerdSLAM/core/*.h
+  NerdSLAM/core/*.cc
+  NerdSLAM/kinect/kinect_display_window.*
+  NerdSLAM/kinect/kinect_frame.*)
 
 find_library(freenect_LIBRARIES freenect)
 if (freenect_LIBRARIES)
@@ -57,6 +62,7 @@ if (freenect_LIBRARIES)
 
   message(STATUS "building kinect v1 viewer...")
   add_executable(kinect_display_v1 NerdSLAM/kinect/v1/kinect_display.cc)
+  target_link_libraries(kinect_display_v1 NerdSLAM)
 endif ()
 
 find_library(freenect2_LIBRARIES freenect2)
@@ -69,11 +75,11 @@ if (freenect2_LIBRARIES)
   file(GLOB KINECT_V2_SOURCE
     NerdSLAM/kinect/v2/*.h
     NerdSLAM/kinect/v2/*.cc
-    NerdSLAM/kinect/kinect_display_window.*
-    NerdSLAM/kinect/kinect_frame.*)
+    )
 
   message(STATUS "building kinect v2 viewer...")
   add_executable(kinect_display_v2 NerdSLAM/kinect/v2/kinect_display.cc)
+  target_link_libraries(kinect_display_v2 NerdSLAM)
 else ()
   set(KINECT_SOURCE "")
 endif ()
@@ -85,6 +91,3 @@ add_library(NerdSLAM
   ${KINECT_V2_SOURCE}
   ${SLAM_PROTO_SOURCE}
   ${SLAM_PROTO_HEADERS})
-
-target_link_libraries(kinect_display_v1 NerdSLAM)
-target_link_libraries(kinect_display_v2 NerdSLAM)
