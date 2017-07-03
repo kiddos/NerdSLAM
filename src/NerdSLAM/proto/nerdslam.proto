@@ -1,5 +1,14 @@
 package nerd.slam;
 
+message KinectConfigV1 {
+  enum VideoFormat {
+    RGB = 0;
+    YUV_RGB = 1;
+    YUV_RAW = 2;
+  }
+  required VideoFormat video_format = 1;
+}
+
 message KinectConfigV2 {
   enum PacketPipelineType {
     OPENGL = 0;
