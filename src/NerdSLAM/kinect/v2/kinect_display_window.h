@@ -7,6 +7,7 @@
 
 namespace nerd {
 namespace slam {
+namespace v2 {
 
 class KinectDisplayWindow : public gl::OpenGLWindow {
  public:
@@ -21,5 +22,6 @@ class KinectDisplayWindow : public gl::OpenGLWindow {
   KinectFrame rgb_frame_, depth_frame_;
 };
 
+} /* end of v2 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */

@@ -1,4 +1,4 @@
-#include "NerdSLAM/kinect/kinect_display_window.h"
+#include "NerdSLAM/kinect/v2/kinect_display_window.h"
 #include <boost/program_options.hpp>
 #include <iostream>
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
   }
   config.set_title("Kinect Display 2D");
 
-  nerd::slam::KinectDisplayWindow window(config);
+  nerd::slam::v2::KinectDisplayWindow window(config);
   if (window.Init()) {
     window.MainLoop();
   }

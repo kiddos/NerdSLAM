@@ -1,10 +1,11 @@
-#include "NerdSLAM/kinect/kinect_display_window.h"
+#include "NerdSLAM/kinect/v1/kinect_display_window.h"
+#include "NerdSLAM/kinect/v1/kinect_reader_v1.h"
 #include <boost/bind.hpp>
 #include <iostream>
-#include "NerdSLAM/kinect/v2/kinect_reader_v2.h"
 
 namespace nerd {
 namespace slam {
+namespace v1 {
 
 KinectDisplayWindow::KinectDisplayWindow(const OpenGLWindowConfig& config)
     : OpenGLWindow(config) {}
@@ -14,23 +15,24 @@ KinectDisplayWindow::~KinectDisplayWindow() {
 }
 
 bool KinectDisplayWindow::Init() {
-  OpenGLWindow::Init();
+  if (!OpenGLWindow::Init()) {
+    return false;
+  }
+
   // setup frames
   if (!rgb_frame_.Init("shaders/kinect_frame_2d.vert",
                        "shaders/kinect_frame_rgb.frag")) {
     return false;
   }
 
-  // setup kinect reader
-  KinectConfigV2 config;
-  config.set_registration(true);
-  reader_ = new v2::KinectReaderV2(config);
+  KinectConfigV1 config;
+  reader_ = new v1::KinectReaderV1(config);
   if (!reader_->FindDevice()) {
     return false;
   }
 
   glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int scancode,
-      int action, int mods) {
+                                 int action, int mods) {
     if (action == GLFW_PRESS) {
       if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -38,12 +40,11 @@ bool KinectDisplayWindow::Init() {
     }
   });
 
-  // get time
   start_time_ = glfwGetTime();
   frames_ = 0;
   reader_->set_frame_hander(
       boost::bind(&KinectDisplayWindow::Render, this, _1));
-  return true;
+  return false;
 }
 
 void KinectDisplayWindow::Render(const FrameMap& frames) {
@@ -75,5 +76,6 @@ void KinectDisplayWindow::MainLoop() {
   }
 }
 
+} /* end of v1 namespace */
 } /* end of slam namespace */
 } /* end of nerd namespace */
