@@ -120,27 +120,8 @@ bool KinectReaderV2::FindDevice() {
   return true;
 }
 
-void KinectReaderV2::StartDevice() {
-  if (config_.rgb() && config_.depth()) {
-    running_ = device_->start();
-  } else {
-    running_ = device_->startStreams(config_.rgb(), config_.depth());
-  }
-  Loop();
-}
-
-void KinectReaderV2::PauseDevice() {
-  if (device_) {
-    device_->stop();
-  }
-}
-
-void KinectReaderV2::StopDevice() {
-  PauseDevice();
-  running_ = false;
-}
-
-void KinectReaderV2::Loop() {
+void KinectReaderV2::Run() {
+  running_ = true;
   while (running_) {
     if (!listener_->waitForNewFrame(frame_map_, config_.timeout())) {
       continue;
@@ -174,6 +155,25 @@ void KinectReaderV2::Loop() {
           std::chrono::milliseconds(config_.timeout()));
     }
   }
+}
+
+void KinectReaderV2::StartDevice() {
+  if (config_.rgb() && config_.depth()) {
+    running_ = device_->start();
+  } else {
+    running_ = device_->startStreams(config_.rgb(), config_.depth());
+  }
+}
+
+void KinectReaderV2::PauseDevice() {
+  if (device_) {
+    device_->stop();
+  }
+}
+
+void KinectReaderV2::StopDevice() {
+  PauseDevice();
+  running_ = false;
 }
 
 void KinectReaderV2::ProcessRGBFrame(const libfreenect2::Frame* rgb) {

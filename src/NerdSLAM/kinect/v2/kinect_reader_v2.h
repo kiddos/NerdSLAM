@@ -17,6 +17,7 @@ class KinectReaderV2 : public KinectReader {
   KinectReaderV2(const KinectConfigV2& config);
   virtual ~KinectReaderV2();
   virtual bool FindDevice() override;
+  virtual void Run() override;
   virtual void StartDevice() override;
   virtual void PauseDevice() override;
   virtual void StopDevice() override;
