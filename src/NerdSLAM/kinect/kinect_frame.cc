@@ -1,15 +1,12 @@
 #include "NerdSLAM/kinect/kinect_frame.h"
 #include <vector>
-#include <iostream>
 
 namespace nerd {
 namespace slam {
 
 KinectFrame::KinectFrame() : texture_(0) {}
 
-KinectFrame::~KinectFrame() {
-  glDeleteTextures(1, &texture_);
-}
+KinectFrame::~KinectFrame() { glDeleteTextures(1, &texture_); }
 
 bool KinectFrame::Init(const std::string& vert_shader,
                        const std::string& frag_shader) {
@@ -35,8 +32,8 @@ void KinectFrame::UpdateFrame(const Frame& frame) {
   Vertex tr = {1.0f, 1.0f, w, 0};
   Vertex vertexes[] = {bl, tl, tr, tr, br, bl};
   // push vertices to OpenGL pipeline
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes),
-               &vertexes[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), &vertexes[0],
+               GL_STATIC_DRAW);
 
   // push texture to pipeline
   glActiveTexture(GL_TEXTURE0);
@@ -45,8 +42,28 @@ void KinectFrame::UpdateFrame(const Frame& frame) {
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGB, w, h, 0, GL_BGRA,
-               GL_UNSIGNED_BYTE, frame.data().c_str());
+  switch (frame.type()) {
+    case Frame::BGRX:
+      glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGB, w, h, 0, GL_BGRA,
+                   GL_UNSIGNED_BYTE, frame.data().c_str());
+      break;
+    case Frame::RGBX:
+      glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGB, w, h, 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, frame.data().c_str());
+      break;
+    case Frame::FLOAT:
+      glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGB, w, h, 0, GL_DEPTH,
+                   GL_UNSIGNED_BYTE, frame.data().c_str());
+      break;
+    case Frame::GRAY:
+      glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGB, w, h, 0, GL_R8,
+                   GL_UNSIGNED_BYTE, frame.data().c_str());
+      break;
+    case Frame::RGB:
+      glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGB, w, h, 0, GL_RGB,
+                   GL_UNSIGNED_BYTE, frame.data().c_str());
+      break;
+  }
 }
 
 void KinectFrame::Render() {
