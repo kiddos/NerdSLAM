@@ -74,7 +74,7 @@ void KinectDisplayWindow::Render(const FrameMap& frames) {
 
 void KinectDisplayWindow::MainLoop() {
   if (reader_) {
-    reader_->StartDevice();
+    reader_->Run();
   }
 }
 
